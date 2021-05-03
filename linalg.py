@@ -124,7 +124,7 @@ class Matrix:
 def gaussian_elimination(A, B):
     """ Matrix 'A' must be square. 'B' is a list of Vectors 'b'. 
 
-    Returns a list of vectors, 'X', that corresponds to the solutions to Ax = b
+    Returns a list of Vectors, 'X', that corresponds to the solutions to Ax = b
     Returns -1 if A is over or underdetermined """
 
     N = A.dim[0]
@@ -171,12 +171,12 @@ def inverse(A):
 
 
 def one_dim_projection(w, v):
-    """ Returns the projection of vector v onto the subspace spanned by vector w """
+    """ Returns the projection of Vector v onto the subspace spanned by Vector w """
     return (v.dot(w) / w.norm()) * w
 
 
 def projection(A, v):
-    """ Returns the projection of vector v onto the subspace spanned by the columns of matrix A """
+    """ Returns the projection of Vector v onto the subspace spanned by the columns of matrix A """
     AT = A.transpose()
     ATA = AT.dot(A)
     return A.dot(inverse(ATA).dot(AT)).dot(v)
