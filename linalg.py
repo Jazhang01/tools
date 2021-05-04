@@ -50,14 +50,18 @@ class Vector:
         """ Returns the norm of the vector """
         return self.dot(self)**(1/2)
 
-    def concat(self, v):
-        """ Returns the vector concatenated with Vector 'v' """
-        return Vector(self.v + v.v)
+    def copy(self):
+        return Vector(self.v)
 
     @staticmethod
     def _func_vectors(vectors, f):
         """ Returns an n argument function 'f' applied over the corresponding elements in n Vectors """
         return Vector([f(*args) for args in zip(*vectors)])
+    
+    @staticmethod
+    def concat(v, w):
+        """ Returns Vector 'v' concatenated with Vector 'w' """
+        return Vector(v.v + w.v)
 
 
 class Matrix:
@@ -110,23 +114,99 @@ class Matrix:
             return self.mult_matrix(x)
         raise TypeError('x needs to be a Vector or a Matrix')
 
-    def concat(self, m, dim=0):
-        """ Returns the matrix concatenated with Matrix 'm' """ 
-        assert dim == 0 or dim == 1
-        if dim == 0:
-            return Matrix(self.rows + m.rows)
-        return Matrix([r.concat(mr) for r, mr in zip(self.rows, m.rows)]) 
+    def copy(self):
+        return Matrix(self.rows)
 
     @staticmethod
     def identity(dim):
         return Matrix([[int(i==j) for i in range(dim)] for j in range(dim)])
+
+    @staticmethod
+    def concat(m1, m2, dim=0):
+        assert dim == 0 or dim == 1
+        if dim == 0:
+            return Matrix(m1.rows + m2.rows)
+        return Matrix([Vector.concat(r1, r2) for r1, r2 in zip(m1.rows, m2.rows)])
+
+
+def row_reduce(A, full=True, get_rank_nullity=False):
+    """ If 'full' is True, returns the reduced row echelon form of Matrix 'A'.
+    Otherwise, returns the row echelon form of Matrix 'A' 
+
+    If 'get_rank_nullity' is True, then it only returns the rank and nullity as (rank, nullity) """
+
+    A = A.copy()
+    N, M = A.dim
+
+    rank, nullity = 0, 0
+
+    # keep track of (row, column) of pivots
+    pivots = []
+
+    # upper triangle / row echelon form
+    for j in range(min(A.dim)):
+        # pivot row
+        p = j - nullity
+        
+        # find pivot
+        i = p
+        while i < N and A[i][j] == 0:
+            i += 1
+        
+        # no pivot
+        if i >= N:
+            nullity += 1
+            continue
+        
+        rank += 1
+        pivots.append((p, j))
+
+        A.swap_rows(i, p)  # put pivot in place
+        A.scale_row(p, 1/A[p][j])  # set pivot to 1
+        
+        # zero elements below pivot
+        for i in range(p+1, N):
+            A.add_row_to(p, i, scale=-A[i][j])
+
+    if get_rank_nullity:
+        return (rank, nullity)
+
+    if not full:
+        return A
+
+    # fully reduce
+    for p, j in pivots:
+        for i in range(p-1, -1, -1):
+            A.add_row_to(p, i, scale=-A[i][j])
+
+    return A
+
+
+def rank(A):
+    """ Returns the rank of Matrix A i.e. the dimension of the columnspace of A """
+    return row_reduce(A, get_rank_nullity=True)[0]
+
+
+def nullity(A):
+    """ Returns the nullity of Matrix A i.e. the dimension of the nullspace of A """
+    return row_reduce(A, get_rank_nullity=True)[1]
 
 
 def gaussian_elimination(A, B):
     """ Matrix 'A' must be square. 'B' is a list of Vectors 'b'. 
 
     Returns a list of Vectors, 'X', that corresponds to the solutions to Ax = b
-    Returns -1 if A is over or underdetermined """
+    Returns -1 if A is over or underdetermined 
+    
+    >>> A = Matrix([[1,-1,1],[2,3,-1],[3,-2,-9]])
+    >>> B = [Vector([8, -2, 9])]
+    >>> gaussian_elimination(A, B)
+    [(4.0, -3.0, 1.0)]
+    >>> A = Matrix([[1,2,3],[2,4,6],[1,2,1]])
+    >>> B = [Vector([6, 12, 4])]
+    >>> gaussian_elimination(A, B)
+    -1
+    """
 
     N = A.dim[0]
 
@@ -135,32 +215,14 @@ def gaussian_elimination(A, B):
 
     # augmented matrix
     B = Matrix(B).transpose()
-    M = A.concat(B, dim=1)
+    M = Matrix.concat(A, B, dim=1)
+    
+    # reduced row echelon form
+    M = row_reduce(M, full=True)
 
-    # upper triangle
-    for j in range(N):
-        # find pivot row
-        i = j
-        while M[i][j] == 0:
-            i += 1
-            # zero column --> no solution
-            if i >= N:
-                return -1
- 
-        # put pivot row in place
-        M.swap_rows(i, j)
-
-        # set pivot element to 1
-        M.scale_row(j, 1/M[j][j])
-
-        # zero elements below pivot
-        for i in range(j+1, N):
-            M.add_row_to(j, i, scale=-M[i][j])
-
-    # create identity
-    for j in range(N-1, -1, -1):
-        for i in range(j-1, -1, -1):
-            M.add_row_to(j, i, scale=-M[i][j])
+    # check last row's pivot to see if over or underdetermined
+    if M[N-1][N-1] != 1:
+        return -1
 
     return M.transpose()[N:]
 
