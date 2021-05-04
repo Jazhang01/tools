@@ -108,6 +108,7 @@ class Matrix:
             return self.mult_vector(x)
         if isinstance(x, Matrix):
             return self.mult_matrix(x)
+        raise TypeError('x needs to be a Vector or a Matrix')
 
     def concat(self, m, dim=0):
         """ Returns the matrix concatenated with Matrix 'm' """ 
