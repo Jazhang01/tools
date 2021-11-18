@@ -230,7 +230,21 @@ def gaussian_elimination(A, B):
 def inverse(A):
     """ Matrix A must be square. Returns the inverse of A if it exists, otherwise -1 """ 
     assert A.dim[0] == A.dim[1]
-    return Matrix(gaussian_elimination(A, Matrix.identity(A.dim[0]))).transpose()
+    GE = gaussian_elimination(A, Matrix.identity(A.dim[0]))
+    if GE == -1:
+        return -1
+    return Matrix(GE).transpose()
+
+
+def pseudoinverse(A):
+    """ Matrix A must be full rank """
+    AT = A.transpose()
+    if A.dim[0] >= A.dim[1]:
+        ATA = AT.dot(A)
+        return inverse(ATA).dot(AT)
+    else:
+        AAT = A.dot(AT)
+        return AT.dot(inverse(AAT))
 
 
 def one_dim_projection(w, v):
@@ -246,4 +260,3 @@ def projection(A, v):
 
 
 
-    

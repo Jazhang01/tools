@@ -1,7 +1,9 @@
 import linalg
 
+
 def linear_regression(x, y, n=1):
-    """ Fits a 'n' degree polynomial of the form a + bx + ... + yx^(n-1) + zx^n to the data (x, y) and returns the coefficients (a, b, ..., z) """
+    """ Fits a 'n' degree polynomial of the form a + bx + ... + yx^(n-1) + zx^n to the data (x, y) and
+     returns the coefficients (a, b, ..., z) """
 
     assert len(x) == len(y)
 
