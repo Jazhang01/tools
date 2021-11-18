@@ -1,12 +1,39 @@
+class IDObject(object):
+    def __init__(self, id):
+        self.id = id
+
+    def __eq__(self, other):
+        return self.id == other.id
+
+    def __hash__(self):
+        return self.id
+
+    def __str__(self):
+        return str(self.id)
+
+    def __repr__(self):
+        return str(self.id)
+
+
+class Vertex(IDObject):
+    def __init__(self, id):
+        super().__init__(id)
+
+
+class Edge(IDObject):
+    def __init__(self, id, v1=None, v2=None):
+        assert isinstance(v1, Vertex), isinstance(v2, Vertex)
+        super().__init__(id)
+        self.v1 = v1
+        self.v2 = v2
+
+
 class Graph(object):
     def __init__(self):
         """ Initializes the graph """
 
     def vertices(self):
         """ Returns a set of vertices """
-
-    def edges(self):
-        """ Returns a set of edges """
 
     def add_vertex(self, v):
         """ Adds a vertex 'v' to the graph """
@@ -25,6 +52,9 @@ class DiGraph(Graph):
     def __init__(self):
         super().__init__()
         self.edges = {}
+
+    def vertices(self):
+        return self.edges.keys()
 
     def add_vertex(self, v):
         assert isinstance(v, Vertex)
@@ -55,20 +85,3 @@ class DiGraph(Graph):
     def __repr__(self):
         return str(self.edges)
 
-
-class Vertex(object):
-    def __init__(self, id, info=None):
-        self.id = id
-        self.info = info
-
-    def __eq__(self, other):
-        return self.id == other.id
-
-    def __hash__(self):
-        return self.id
-
-    def __str__(self):
-        return str(self.id)
-
-    def __repr__(self):
-        return str(self.id)
