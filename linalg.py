@@ -1,7 +1,7 @@
 from operator import add, sub, mul
 
 
-class Vector:
+class Vector(object):
     def __init__(self, elements):
         self.v = tuple(e for e in elements)
         self.dim = len(self.v)
@@ -68,7 +68,8 @@ class Vector:
         """ Returns a zero Vector of size 'n' """
         return Vector([0]*n)
 
-class Matrix:
+
+class Matrix(object):
     def __init__(self, rows):
         self.rows = [Vector(r) for r in rows]
         self.dim = (len(self.rows), len(self.rows[0]))
