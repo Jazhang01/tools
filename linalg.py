@@ -117,6 +117,15 @@ class Matrix:
     def copy(self):
         return Matrix(self.rows)
 
+    def square(self):
+        """ Returns whether the matrix is square """
+        return self.dim[0] == self.dim[1]
+
+    def trace(self):
+        """ Returns trace of matrix, if square """
+        assert self.square()
+        return sum(self.rows[i][i] for i in range(self.dim[0]))
+
     @staticmethod
     def identity(dim):
         return Matrix([[int(i==j) for i in range(dim)] for j in range(dim)])
@@ -129,16 +138,18 @@ class Matrix:
         return Matrix([Vector.concat(r1, r2) for r1, r2 in zip(m1.rows, m2.rows)])
 
 
-def row_reduce(A, full=True, get_rank_nullity=False):
+def row_reduce(A, full=True, get_rank_nullity=False, get_determinant=False):
     """ If 'full' is True, returns the reduced row echelon form of Matrix 'A'.
     Otherwise, returns the row echelon form of Matrix 'A' 
 
-    If 'get_rank_nullity' is True, then it only returns the rank and nullity as (rank, nullity) """
+    If 'get_rank_nullity' is True, then it only returns the rank and nullity as (rank, nullity)
+    If 'get_determinant' is True, then it only returns the determinant """
 
     A = A.copy()
     N, M = A.dim
 
     rank, nullity = 0, 0
+    determinant = 1
 
     # keep track of (row, column) of pivots
     pivots = []
@@ -161,7 +172,11 @@ def row_reduce(A, full=True, get_rank_nullity=False):
         rank += 1
         pivots.append((p, j))
 
-        A.swap_rows(i, p)  # put pivot in place
+        if i != p:
+            A.swap_rows(i, p)  # put pivot in place
+            determinant *= -1
+
+        determinant *= A[p][j]
         A.scale_row(p, 1/A[p][j])  # set pivot to 1
         
         # zero elements below pivot
@@ -170,6 +185,9 @@ def row_reduce(A, full=True, get_rank_nullity=False):
 
     if get_rank_nullity:
         return (rank, nullity)
+
+    if get_determinant:
+        return determinant
 
     if not full:
         return A
@@ -192,6 +210,12 @@ def nullity(A):
     return row_reduce(A, get_rank_nullity=True)[1]
 
 
+def determinant(A):
+    """ Returns the determinant of Matrix A, if A is square """
+    assert A.square()
+    return row_reduce(A, get_determinant=True)
+
+
 def gaussian_elimination(A, B):
     """ Matrix 'A' must be square. 'B' is a list of Vectors 'b'. 
 
@@ -210,7 +234,7 @@ def gaussian_elimination(A, B):
 
     N = A.dim[0]
 
-    assert A.dim[0] == A.dim[1]  # check square
+    assert A.square()
     for b in B: assert b.dim == N  # check dimensions
 
     # augmented matrix
@@ -229,7 +253,7 @@ def gaussian_elimination(A, B):
 
 def inverse(A):
     """ Matrix A must be square. Returns the inverse of A if it exists, otherwise -1 """ 
-    assert A.dim[0] == A.dim[1]
+    assert A.square()
     GE = gaussian_elimination(A, Matrix.identity(A.dim[0]))
     if GE == -1:
         return -1
@@ -257,6 +281,4 @@ def projection(A, v):
     AT = A.transpose()
     ATA = AT.dot(A)
     return A.dot(inverse(ATA).dot(AT)).dot(v)
-
-
 

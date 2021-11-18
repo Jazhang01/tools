@@ -2,11 +2,10 @@ import linalg
 from linalg import Vector
 from linalg import Matrix
 
-M = Matrix([[1, 0, 0],
-            [0, 1, 0]])
-M2 = Matrix([[0, 4, 1],
-             [1, 0, 3]])
-v = Vector([1, 1])
+M = Matrix([[-1, 2, 100, 123],
+            [2, -83, 9, 38],
+            [213, 2, -12, 9],
+            [2, 11, 213, 3]])
 
-print(linalg.pseudoinverse(M))
-print(M2.dot(linalg.pseudoinverse(M2)))
+print(linalg.determinant(M))
+print(linalg.row_reduce(M))
