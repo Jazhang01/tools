@@ -63,6 +63,10 @@ class Vector:
         """ Returns Vector 'v' concatenated with Vector 'w' """
         return Vector(v.v + w.v)
 
+    @staticmethod
+    def zero(n):
+        """ Returns a zero Vector of size 'n' """
+        return Vector([0]*n)
 
 class Matrix:
     def __init__(self, rows):
@@ -271,7 +275,7 @@ def pseudoinverse(A):
         return AT.dot(inverse(AAT))
 
 
-def one_dim_projection(w, v):
+def one_dim_projection(v, w):
     """ Returns the projection of Vector v onto the subspace spanned by Vector w """
     return (v.dot(w) / w.norm()) * w
 
@@ -282,3 +286,15 @@ def projection(A, v):
     ATA = AT.dot(A)
     return A.dot(inverse(ATA).dot(AT)).dot(v)
 
+
+def gram_schmidt(V):
+    """ Applies the gram-schmidt algorithm to the set of vectors, V.
+    Returns a list of orthonormal vectors spanning the span of V """
+    U = []
+    for v in V:
+        assert isinstance(v, Vector)
+        for u in U:
+            v -= one_dim_projection(v, u)
+        if v.norm() != 0:
+            U.append(v / v.norm())
+    return U
